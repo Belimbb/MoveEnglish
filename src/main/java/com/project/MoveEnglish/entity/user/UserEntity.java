@@ -1,4 +1,4 @@
-package com.project.MoveEnglish.entity;
+package com.project.MoveEnglish.entity.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

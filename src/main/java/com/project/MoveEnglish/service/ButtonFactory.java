@@ -19,8 +19,9 @@ public class ButtonFactory {
         List<KeyboardRow> keyboard = new ArrayList<>();
 
         KeyboardRow row = new KeyboardRow();
-        row.add("Курси валют");
-        row.add("Налаштування");
+        row.add("Меню");
+        row.add("Запис на урок");
+        row.add("Співпраця");
 
         keyboard.add(row);
         replyKeyboardMarkup.setKeyboard(keyboard);

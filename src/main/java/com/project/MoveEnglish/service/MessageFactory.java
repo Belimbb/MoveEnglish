@@ -1,15 +1,11 @@
 package com.project.MoveEnglish.service;
 
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.InputFile;
 
 @Service
-@AllArgsConstructor
 public class MessageFactory {
     private static Long chatId;
 
@@ -30,6 +26,7 @@ public class MessageFactory {
         return message;
     }
 
+    /*
     public static SendPhoto createPhotoMessage(String imageUrl, String caption) {
         SendPhoto photo = new SendPhoto();
         photo.setChatId(chatId.toString());
@@ -38,6 +35,8 @@ public class MessageFactory {
         photo.setParseMode(ParseMode.HTML);
         return photo;
     }
+
+     */
 
     public static EditMessageText editMessage(Integer messageId, String text) {
         EditMessageText editMessage = new EditMessageText();

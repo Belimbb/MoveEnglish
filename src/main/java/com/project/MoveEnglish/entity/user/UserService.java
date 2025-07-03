@@ -1,4 +1,4 @@
-package com.project.MoveEnglish.entity;
+package com.project.MoveEnglish.entity.user;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
 
@@ -13,5 +13,5 @@ public interface UserService {
 
     UserDto update(UserDto dto);
 
-    void delete(UserDto id);
+    void delete(Long chatId);
 }
