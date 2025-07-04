@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @Service
 public class ButtonFactory {
-    private static final String OBJECT_NAME = "ButtonFactory";
+    private static final String CLASS_NAME = "ButtonFactory";
 
     // Метод для создания постоянной клавиатуры пользователя
     public static ReplyKeyboardMarkup getReplyKeyboardMarkup() {
@@ -33,7 +33,7 @@ public class ButtonFactory {
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(false);
 
-        log.info("{}: " + OBJECT_NAME + "Reply keyboard markup was created", LogEnum.SERVICE);
+        log.info("{}: " + CLASS_NAME + ". Reply keyboard markup was created", LogEnum.SERVICE);
         return replyKeyboardMarkup;
     }
 
@@ -45,7 +45,7 @@ public class ButtonFactory {
             buttons.add(createButton(buttonText, prefix + "_" + option.getKey()));
         }
 
-        log.info("{}: " + OBJECT_NAME + "Inline keyboard markup was created", LogEnum.SERVICE);
+        log.info("{}: " + CLASS_NAME + ". Inline keyboard markup was created", LogEnum.SERVICE);
         return buildInlineKeyboard(buttons);
     }
 

@@ -12,7 +12,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 @Service
 public class MessageFactory {
     private static Long chatId;
-    private static final String OBJECT_NAME = "MessageFactory";
+    private static final String CLASS_NAME = "MessageFactory";
 
     public static SendMessage createMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
@@ -20,7 +20,7 @@ public class MessageFactory {
         message.setText(text);
         message.setParseMode(ParseMode.HTML);
 
-        log.info("{}: " + OBJECT_NAME + "Message (to chat: {}) was created", LogEnum.SERVICE, chatId);
+        log.info("{}: " + CLASS_NAME + ". Message (to chat: {}) was created", LogEnum.SERVICE, chatId);
         return message;
     }
 
@@ -52,7 +52,7 @@ public class MessageFactory {
         editMessage.setText(text);
         editMessage.setParseMode(ParseMode.HTML);
 
-        log.info("{}: " + OBJECT_NAME + "Message (mes id: {}, to chat: {}) was edited", LogEnum.SERVICE, messageId, chatId);
+        log.info("{}: " + CLASS_NAME + "Message (mes id: {}, to chat: {}) was edited", LogEnum.SERVICE, messageId, chatId);
         return editMessage;
     }
 }

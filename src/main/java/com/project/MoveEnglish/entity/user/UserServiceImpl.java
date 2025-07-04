@@ -20,6 +20,7 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    private static final String CLASS_NAME = "UserService";
     private static final String OBJECT_NAME = "User";
 
     @Override
@@ -44,19 +45,19 @@ public class UserServiceImpl implements UserService{
         UserEntity user = new UserEntity(chatId, firstName, userName);
         //AppRegistry.addUserCompletely(user);
 
-        log.info("{}: " + OBJECT_NAME + " (Username: {}) was created", LogEnum.SERVICE, userName);
+        log.info("{}: "+CLASS_NAME+". " + OBJECT_NAME + " (Username: {}) was created", LogEnum.SERVICE, userName);
         return saveUser(user);
     }
 
     @Override
     public UserDto getById(Long chatId) {
-        log.info("{}: request on retrieving " + OBJECT_NAME + " by id {} was sent", LogEnum.SERVICE, chatId);
+        log.info("{}: "+CLASS_NAME+". Request on retrieving " + OBJECT_NAME + " by id {} was sent", LogEnum.SERVICE, chatId);
         return userMapper.toDto(findById(chatId));
     }
 
     @Override
     public List<UserDto> getAll() {
-        log.info("{}: request on retrieving all " + OBJECT_NAME + "s was sent", LogEnum.SERVICE);
+        log.info("{}: "+CLASS_NAME+". Request on retrieving all " + OBJECT_NAME + "s was sent", LogEnum.SERVICE);
         return userMapper.toDtoList(userRepository.findAll());
     }
 
@@ -67,14 +68,14 @@ public class UserServiceImpl implements UserService{
         user.setName(dto.name());
         user.setUsername(dto.username());
 
-        log.info("{}: " + OBJECT_NAME + " (id: {}) was updated", LogEnum.SERVICE, id);
+        log.info("{}: "+ CLASS_NAME +". " + OBJECT_NAME + " (id: {}) was updated", LogEnum.SERVICE, id);
         return saveUser(user);
     }
 
     @Override
     public void delete(Long id) {
         userRepository.delete(findById(id));
-        log.info("{}: " + OBJECT_NAME + " (id: {}) was deleted", LogEnum.SERVICE, id);
+        log.info("{}: "+ CLASS_NAME + ". " + OBJECT_NAME + " (id: {}) was deleted", LogEnum.SERVICE, id);
     }
 
     @Override

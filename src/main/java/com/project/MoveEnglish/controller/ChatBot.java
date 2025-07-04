@@ -1,6 +1,7 @@
 package com.project.MoveEnglish.controller;
 
 import com.project.MoveEnglish.entity.user.UserService;
+import com.project.MoveEnglish.exception.LogEnum;
 import com.project.MoveEnglish.service.BotDialogHandler;
 
 import jakarta.annotation.PostConstruct;
@@ -22,8 +23,8 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-@Component
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class ChatBot extends TelegramLongPollingBot {
 
@@ -31,7 +32,7 @@ public class ChatBot extends TelegramLongPollingBot {
     //private final BotConfig botConfig;
     private final BotDialogHandler dialogHandler;
     private final UserService userService;
-
+    private static final String CLASS_NAME = "ChatBot";
 
     @Value("${bot.name}")
     private String botName;
@@ -123,12 +124,8 @@ public class ChatBot extends TelegramLongPollingBot {
     }
 
     public void doCommandStart(Long chatId, Update update) {
-        SendMessage ms = dialogHandler.createWelcomeMessage(chatId, extractName(update));
-        try {
-            execute(ms);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
+        sendMessage(dialogHandler.createWelcomeMessage(chatId, extractName(update)));
+        log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) was created", LogEnum.CONTROLLER, chatId);
     }
     public void doCommandStop(Long chatId) {
         SendMessage ms = dialogHandler.createMessage(chatId,
