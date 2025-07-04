@@ -27,11 +27,10 @@ public class UserServiceImpl implements UserService{
         if (chatId == null) {
             return null;
         }
-        try {
-            existById(chatId);
-        } catch (CustomNotFoundException ignored){
-
+        if (existById(chatId)){
+            throw new CustomAlreadyExistException(OBJECT_NAME, chatId);
         }
+
         String firstName = "";
         String userName = "";
         if (update.hasMessage()) {
@@ -78,15 +77,13 @@ public class UserServiceImpl implements UserService{
         log.info("{}: " + OBJECT_NAME + " (id: {}) was deleted", LogEnum.SERVICE, id);
     }
 
+    @Override
+    public Boolean existById(Long id){
+        return userRepository.existsById(id);
+    }
 
     private UserEntity findById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new CustomNotFoundException(OBJECT_NAME, id));
-    }
-
-    private void existById(Long id){
-        if (!userRepository.existsById(id)) {
-            throw new CustomNotFoundException(OBJECT_NAME, id);
-        }
     }
 
     private UserDto saveUser (UserEntity user){

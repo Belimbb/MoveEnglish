@@ -1,19 +1,26 @@
 package com.project.MoveEnglish.service;
 
+import com.project.MoveEnglish.exception.LogEnum;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
+@Slf4j
 @Service
 public class MessageFactory {
     private static Long chatId;
+    private static final String OBJECT_NAME = "MessageFactory";
 
     public static SendMessage createMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
         message.setParseMode(ParseMode.HTML);
+
+        log.info("{}: " + OBJECT_NAME + "Message (to chat: {}) was created", LogEnum.SERVICE, chatId);
         return message;
     }
 
@@ -44,6 +51,8 @@ public class MessageFactory {
         editMessage.setMessageId(messageId);
         editMessage.setText(text);
         editMessage.setParseMode(ParseMode.HTML);
+
+        log.info("{}: " + OBJECT_NAME + "Message (mes id: {}, to chat: {}) was edited", LogEnum.SERVICE, messageId, chatId);
         return editMessage;
     }
 }

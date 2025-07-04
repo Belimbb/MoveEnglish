@@ -1,7 +1,5 @@
 package com.project.MoveEnglish.controller;
 
-import com.project.MoveEnglish.config.BotConfig;
-
 import com.project.MoveEnglish.entity.user.UserService;
 import com.project.MoveEnglish.service.BotDialogHandler;
 
@@ -11,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.stereotype.Component;
+
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -76,7 +74,9 @@ public class ChatBot extends TelegramLongPollingBot {
         Long chatId = getChatId(update);
         boolean isCommandPerformed = false;
         // check or add user
-        userService.create(chatId, update);
+        if (!userService.existById(chatId)){
+            userService.create(chatId, update);
+        }
 
         // Messages processing
         if (update.hasMessage()) {
@@ -92,7 +92,7 @@ public class ChatBot extends TelegramLongPollingBot {
             // Stop / Disable notify
             if (msgCommand.equals("/stop") || msgCommand.endsWith(new String("Вийти".getBytes(), StandardCharsets.UTF_8))) {
                 isCommandPerformed = true;
-                doCommandStop(chatId, update);
+                doCommandStop(chatId);
             }
             /* Settings
             if (msgCommand.equals("/settings") || msgCommand.endsWith(new String("Налаштування".getBytes(), StandardCharsets.UTF_8))) {
@@ -123,14 +123,14 @@ public class ChatBot extends TelegramLongPollingBot {
     }
 
     public void doCommandStart(Long chatId, Update update) {
-        SendMessage ms = dialogHandler.createWelcomeMessage(chatId);
+        SendMessage ms = dialogHandler.createWelcomeMessage(chatId, extractName(update));
         try {
             execute(ms);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
     }
-    public void doCommandStop(Long chatId, Update update) {
+    public void doCommandStop(Long chatId) {
         SendMessage ms = dialogHandler.createMessage(chatId,
                             """
                             ❗Вашу підписку на отримання курсів валют деактивовано!❗ 
@@ -170,5 +170,9 @@ public class ChatBot extends TelegramLongPollingBot {
     public void sendErrorMessage(Long chatId) {
         SendMessage ms = dialogHandler.createMessage(chatId, "❗ Command not found!");
         sendMessage(ms);
+    }
+
+    private String extractName(Update update){
+        return update.getMessage().getFrom().getFirstName();
     }
 }

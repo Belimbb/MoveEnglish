@@ -14,4 +14,6 @@ public interface UserService {
     UserDto update(UserDto dto);
 
     void delete(Long chatId);
+
+    Boolean existById(Long chatId);
 }

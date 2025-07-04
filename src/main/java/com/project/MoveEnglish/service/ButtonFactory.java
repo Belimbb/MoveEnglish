@@ -1,6 +1,9 @@
 package com.project.MoveEnglish.service;
 
+import com.project.MoveEnglish.exception.LogEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -10,8 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ButtonFactory {
+    private static final String OBJECT_NAME = "ButtonFactory";
 
     // Метод для создания постоянной клавиатуры пользователя
     public static ReplyKeyboardMarkup getReplyKeyboardMarkup() {
@@ -27,6 +32,8 @@ public class ButtonFactory {
         replyKeyboardMarkup.setKeyboard(keyboard);
         replyKeyboardMarkup.setResizeKeyboard(true);
         replyKeyboardMarkup.setOneTimeKeyboard(false);
+
+        log.info("{}: " + OBJECT_NAME + "Reply keyboard markup was created", LogEnum.SERVICE);
         return replyKeyboardMarkup;
     }
 
@@ -37,6 +44,8 @@ public class ButtonFactory {
             String buttonText = userSelections.contains(option.getKey()) ? "✅ " + option.getValue() : option.getValue();
             buttons.add(createButton(buttonText, prefix + "_" + option.getKey()));
         }
+
+        log.info("{}: " + OBJECT_NAME + "Inline keyboard markup was created", LogEnum.SERVICE);
         return buildInlineKeyboard(buttons);
     }
 
