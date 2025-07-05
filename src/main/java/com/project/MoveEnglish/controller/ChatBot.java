@@ -95,13 +95,12 @@ public class ChatBot extends TelegramLongPollingBot {
                 isCommandPerformed = true;
                 doCommandStop(chatId);
             }
-            /* Settings
-            if (msgCommand.equals("/settings") || msgCommand.endsWith(new String("Налаштування".getBytes(), StandardCharsets.UTF_8))) {
+            // Settings
+            if (msgCommand.equals("/menu") || msgCommand.endsWith(new String("Меню".getBytes(), StandardCharsets.UTF_8))) {
                 isCommandPerformed = true;
-                doCommandSettings(chatId, update);
+                doCommandMenu(chatId);
             }
 
-             */
 
             //
             // if no command
@@ -117,7 +116,7 @@ public class ChatBot extends TelegramLongPollingBot {
                     Arrays.toString(btnCommand), chatId);
 
             switch (btnCommand[0].toUpperCase()) {
-                case "WELCOME" -> doCommandStart(chatId, update);
+                case "MENU" -> doCommandMenu(chatId);
             }
 
         }
@@ -128,14 +127,12 @@ public class ChatBot extends TelegramLongPollingBot {
         log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) was created", LogEnum.CONTROLLER, chatId);
     }
     public void doCommandStop(Long chatId) {
-        SendMessage ms = dialogHandler.createMessage(chatId,
-                            """
-                            ❗Вашу підписку на отримання курсів валют деактивовано!❗ 
-                            Якщо ви бажаєте активувати її наново, будь ласка введіть або натисніть на команду /start
-                            Також в налаштуваннях ви маєте обрати зручний для вас час отримання повідомлень з курсами валют.
-                            """);
-        sendMessage(ms);
+        sendMessage(dialogHandler.createStopMessage(chatId));
         userService.delete(chatId);
+    }
+
+    public void doCommandMenu(Long chatId){
+        sendMessage(dialogHandler.createMenuMessage(chatId));
     }
 
     public void sendMessage(SendMessage message) {

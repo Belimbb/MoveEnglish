@@ -2,7 +2,7 @@ package com.project.MoveEnglish.service;
 
 import com.project.MoveEnglish.exception.LogEnum;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
@@ -14,39 +14,48 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class BotDialogHandler {
     private static final String CLASS_NAME = "BotDialogHandler";
+    private final ButtonFactory buttonFactory;
+    private final MessageFactory messageFactory;
 
     public SendMessage createWelcomeMessage(Long chatId, String name) {
         String text = String.format("<b>Вітаю, %s!.</b> \nЯ бот MoveEnglish \uD83D\uDE07 \n\nЯк я можу тобі допомогти?", name);
-        SendMessage sendMessage = messageCollector(chatId, text);
+        SendMessage sendMessage = mainMessageCollector(chatId, text);
 
         log.info("{}: " + CLASS_NAME + ". Welcome message was created", LogEnum.SERVICE);
         return sendMessage;
     }
 
-    public SendMessage createAboutUsMessage(Long chatId) {
-        String text = "Розробник: <b>JavaCrafters Team</b>\nРепозиторій проєкту: https://github.com/vikadmin88/CurrencyChatBot";
-        SendMessage sendMessage = messageCollector(chatId, text);
+//    public SendMessage createAboutUsMessage(Long chatId) {
+//        String text = "Розробник: <b>JavaCrafters Team</b>\nРепозиторій проєкту: https://github.com/vikadmin88/CurrencyChatBot";
+//        SendMessage sendMessage = mainMessageCollector(chatId, text);
+//
+//        return sendMessage;
+//    }
 
+    public SendMessage createMenuMessage(Long chatId) {
+        String text = "Головне меню ✅";
+        SendMessage sendMessage = menuMessageCollector(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Menu message was created", LogEnum.SERVICE);
         return sendMessage;
     }
 
-    public SendMessage createSettingsMessage(Long chatId) {
-        String text = "⚙ <b>Налаштування</b>";
-        SendMessage message = MessageFactory.createMessage(chatId, text);
-        message.setReplyMarkup(ButtonFactory.getInlineKeyboardMarkup(getSettingsOptions(), "settings", new ArrayList<>()));
+    public SendMessage createStopMessage(Long chatId){
+        String text = """
+                        ❗ Ви відписалися від телеграм боту❗ 
+                        Якщо ви бажаєте знову ним користуватися, будь ласка введіть або натисніть на команду /start
+                      """;
+        SendMessage message = messageFactory.createMessage(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Stop message was created", LogEnum.SERVICE);
         return message;
     }
 
-    public SendMessage createStopMessage(Long chatId){
-
-        return null;
-    }
-
     public SendMessage createMessage(Long chatId, String text){
-        return MessageFactory.createMessage(chatId, text);
+        return messageFactory.createMessage(chatId, text);
     }
 
 
@@ -61,9 +70,15 @@ public class BotDialogHandler {
         return options;
     }
 
-    private SendMessage messageCollector (Long chatId, String text){
-        SendMessage sendMessage = MessageFactory.createMessage(chatId, text);
-        sendMessage.setReplyMarkup(ButtonFactory.getReplyKeyboardMarkup());
+    private SendMessage mainMessageCollector (Long chatId, String text){
+        SendMessage sendMessage = messageFactory.createMessage(chatId, text);
+        sendMessage.setReplyMarkup(buttonFactory.getMainReplyKeyboardMarkup());
+        return sendMessage;
+    }
+
+    private SendMessage menuMessageCollector (Long chatId, String text){
+        SendMessage sendMessage = messageFactory.createMessage(chatId, text);
+        sendMessage.setReplyMarkup(buttonFactory.getMenuReplyKeyboardMarkup());
         return sendMessage;
     }
 }

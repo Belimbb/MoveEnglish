@@ -14,7 +14,7 @@ public class MessageFactory {
     private static Long chatId;
     private static final String CLASS_NAME = "MessageFactory";
 
-    public static SendMessage createMessage(Long chatId, String text) {
+    public SendMessage createMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
@@ -24,7 +24,7 @@ public class MessageFactory {
         return message;
     }
 
-    public static SendMessage createMessageWithEmoji(String emoji, String text) {
+    public SendMessage createMessageWithEmoji(String emoji, String text) {
         String fullText = emoji.isEmpty() ? text : emoji + " " + text;
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
@@ -45,7 +45,7 @@ public class MessageFactory {
 
      */
 
-    public static EditMessageText editMessage(Integer messageId, String text) {
+    public EditMessageText editMessage(Integer messageId, String text) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(chatId.toString());
         editMessage.setMessageId(messageId);
