@@ -58,6 +58,15 @@ public class ButtonFactory {
         return replyKeyboardMarkup;
     }
 
+    public ReplyKeyboardMarkup getSubtopicReplyKeyboardMarkup() {
+        KeyboardRow row = new KeyboardRow();
+        row.add("Назад");
+        ReplyKeyboardMarkup replyKeyboardMarkup = buildReplyKeyboardMarkup(row);
+
+        log.info("{}: " + CLASS_NAME + ". Subtopic reply keyboard markup was created", LogEnum.SERVICE);
+        return replyKeyboardMarkup;
+    }
+
     // Метод для создания инлайн-клавиатуры на основе предоставленных параметров
     public InlineKeyboardMarkup getInlineKeyboardMarkup(Map<String, String> options, String prefix, List<String> userSelections) {
         List<InlineKeyboardButton> buttons = new ArrayList<>();

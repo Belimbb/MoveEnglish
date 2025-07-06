@@ -28,8 +28,6 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class ChatBot extends TelegramLongPollingBot {
 
-    //private final String appName;
-    //private final BotConfig botConfig;
     private final BotDialogHandler dialogHandler;
     private final UserService userService;
     private static final String CLASS_NAME = "ChatBot";
@@ -57,10 +55,9 @@ public class ChatBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
-        //AppRegistry.setChatBot(this);
     }
 
-    public Long getChatId(Update update) {
+    private Long getChatId(Update update) {
         if (update.hasMessage()) {
             return update.getMessage().getFrom().getId();
         }
@@ -90,19 +87,34 @@ public class ChatBot extends TelegramLongPollingBot {
                 isCommandPerformed = true;
                 doCommandStart(chatId, update);
             }
-            // Stop / Disable notify
-            if (msgCommand.equals("/stop") || msgCommand.endsWith(new String("Вийти".getBytes(), StandardCharsets.UTF_8))) {
+            // Stop
+            if (checkCommand(msgCommand, "/stop", "Вийти")) {
                 isCommandPerformed = true;
                 doCommandStop(chatId);
             }
-            // Settings
-            if (msgCommand.equals("/menu") || msgCommand.endsWith(new String("Меню".getBytes(), StandardCharsets.UTF_8))) {
+            // Menu
+            if (checkCommand(msgCommand, "/menu", "Меню") ||
+                    checkCommand(msgCommand, "/back", "Назад")){
                 isCommandPerformed = true;
                 doCommandMenu(chatId);
             }
 
+            if (checkCommand(msgCommand, "/about_bot", "ботом?")){
+                isCommandPerformed = true;
+                doCommandAboutBot(chatId);
+            }
 
-            //
+            if (checkCommand(msgCommand, "/about_school", "школа?")){
+                isCommandPerformed = true;
+                doCommandAboutSchool(chatId);
+            }
+
+            if (checkCommand(msgCommand, "/promotions", "Акції")){
+                isCommandPerformed = true;
+                doCommandPromotions(chatId);
+            }
+
+
             // if no command
             if (!isCommandPerformed) {
                 sendErrorMessage(chatId);
@@ -122,20 +134,37 @@ public class ChatBot extends TelegramLongPollingBot {
         }
     }
 
-    public void doCommandStart(Long chatId, Update update) {
+    private void doCommandStart(Long chatId, Update update) {
         sendMessage(dialogHandler.createWelcomeMessage(chatId, extractName(update)));
-        log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) was created", LogEnum.CONTROLLER, chatId);
+        log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) ", LogEnum.CONTROLLER, chatId);
     }
-    public void doCommandStop(Long chatId) {
+    private void doCommandStop(Long chatId) {
         sendMessage(dialogHandler.createStopMessage(chatId));
+        log.info("{}: " + CLASS_NAME + ". Executed stop message (chatId: {})", LogEnum.CONTROLLER, chatId);
         userService.delete(chatId);
     }
 
-    public void doCommandMenu(Long chatId){
+    private void doCommandMenu(Long chatId){
         sendMessage(dialogHandler.createMenuMessage(chatId));
+        log.info("{}: " + CLASS_NAME + ". Executed menu message (chatId: {})", LogEnum.CONTROLLER, chatId);
     }
 
-    public void sendMessage(SendMessage message) {
+    private void doCommandAboutBot(Long chatId){
+        sendMessage(dialogHandler.createAboutBotMessage(chatId));
+        log.info("{}: " + CLASS_NAME + ". Executed about bot message (chatId: {})", LogEnum.CONTROLLER, chatId);
+    }
+
+    private void doCommandAboutSchool(Long chatId){
+        sendMessage(dialogHandler.createAboutSchoolMessage(chatId));
+        log.info("{}: " + CLASS_NAME + ". Executed about school message (chatId: {})", LogEnum.CONTROLLER, chatId);
+    }
+
+    private void doCommandPromotions(Long chatId){
+        sendMessage(dialogHandler.createPromotionsMessage(chatId));
+        log.info("{}: " + CLASS_NAME + ". Executed promotions message (chatId: {})", LogEnum.CONTROLLER, chatId);
+    }
+
+    private void sendMessage(SendMessage message) {
         if (message != null) {
             try {
                 execute(message);
@@ -151,7 +180,7 @@ public class ChatBot extends TelegramLongPollingBot {
         }
     }
 
-    public void sendMessage(EditMessageText message) {
+    private void sendMessage(EditMessageText message) {
         if (message != null) {
             try {
                 execute(message);
@@ -161,12 +190,26 @@ public class ChatBot extends TelegramLongPollingBot {
         }
     }
 
-    public void sendErrorMessage(Long chatId) {
-        SendMessage ms = dialogHandler.createMessage(chatId, "❗ Command not found!");
+    private void sendErrorMessage(Long chatId) {
+        SendMessage ms = dialogHandler.createMessage(chatId, """
+        ❗ <b>Такої команди не існує</b> ❗
+        Наразі доступні такі команди:
+                <b>start</b> - Запускає Ваше спілкування з ботом
+                <b>stop</b> - Закінчує Ваше спілкування з ботом
+                <b>menu</b> - Відкриває меню
+                <b>back</b> - Повертає до меню
+                <b>about_bot</b> - Розкаже як користуватись ботом
+                <b>about_school</b> - Розкаже про школу
+                <b>promotions</b> - Дізнаєтеся про актуальні акції
+        """);
         sendMessage(ms);
     }
 
     private String extractName(Update update){
         return update.getMessage().getFrom().getFirstName();
+    }
+
+    private Boolean checkCommand (String msgCommand, String techName, String audienceName){
+        return msgCommand.equals(techName) || msgCommand.endsWith(new String(audienceName.getBytes(), StandardCharsets.UTF_8));
     }
 }
