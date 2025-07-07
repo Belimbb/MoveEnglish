@@ -1,8 +1,7 @@
-package com.project.MoveEnglish.entity;
+package com.project.MoveEnglish.entity.user;
 
 import com.project.MoveEnglish.config.CustomMapperConfig;
 import org.mapstruct.Mapper;
-import org.springframework.web.bind.annotation.Mapping;
 
 import java.util.List;
 
