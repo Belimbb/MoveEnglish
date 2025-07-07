@@ -49,7 +49,7 @@ public class ButtonFactory {
         rows.add(row3);
 
         KeyboardRow row4 = new KeyboardRow();
-        row4.add("Назад");
+        row4.add("На початок");
         rows.add(row4);
 
         ReplyKeyboardMarkup replyKeyboardMarkup = buildReplyKeyboardMarkup(rows);
@@ -101,14 +101,9 @@ public class ButtonFactory {
     }
 
     private ReplyKeyboardMarkup buildReplyKeyboardMarkup(KeyboardRow row){
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
-
         keyboard.add(row);
-        replyKeyboardMarkup.setKeyboard(keyboard);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-        return replyKeyboardMarkup;
+        return buildReplyKeyboardMarkup(keyboard);
     }
 
     private ReplyKeyboardMarkup buildReplyKeyboardMarkup(List<KeyboardRow> rows){

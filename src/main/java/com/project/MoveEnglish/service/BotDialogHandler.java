@@ -7,6 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -84,9 +89,58 @@ public class BotDialogHandler {
         return sendMessage;
     }
 
+    public SendMessage createCollaborationMessage(Long chatId) {
+        String text = "Вітаю вас у розділі співпраця📈";
+        SendMessage sendMessage = subtopicMessageCollector(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Collaboration message was created", LogEnum.SERVICE);
+        return sendMessage;
+    }
+
+    public SendMessage createCollaborationButtonsMessage(Long chatId) {
+        String text = "Оберіть варіант у якому ви зацікавлені";
+        SendMessage sendMessage = messageFactory.createMessage(chatId, text);
+        sendMessage.setReplyMarkup(buttonFactory.getInlineKeyboardMarkup(getCollaborationOptions(), "collaboration", new ArrayList<>()));
+
+        log.info("{}: " + CLASS_NAME + ". Collaboration button message was created", LogEnum.SERVICE);
+        return sendMessage;
+    }
+
+    public EditMessageText onTutorMessage(Long chatId, Integer messageId) {
+        String text = """
+                Вітаю!👋
+                
+                Щоб стати викладачем👨‍🏫👩‍🏫, напишіть нижче ваше коротке інтерв'ю. Дайте відповідь на питання.
+                1. Розкажіть про себе.
+                2. Який рівень англійської мови ви маєте?
+                3. По якому графіку ви готові працювати?
+                4. Чи маєте ви досвід у викладанні, якщо так, який?
+                 Якщо ви нам підходите, ми зв'яжемось з вами у найближчий час!
+                """;
+        return messageFactory.editMessage(chatId, messageId, text);
+    }
+
+    public SendMessage createTutorMessage(Long chatId){
+        String text = """
+                Вітаю!👋
+                
+                Щоб стати викладачем👨‍🏫👩‍🏫, напишіть нижче ваше коротке інтерв'ю. Дайте відповідь на питання.
+                1. Розкажіть про себе.
+                2. Який рівень англійської мови ви маєте?
+                3. По якому графіку ви готові працювати?
+                4. Чи маєте ви досвід у викладанні, якщо так, який?
+                 Якщо ви нам підходите, ми зв'яжемось з вами у найближчий час!
+                """;
+
+        SendMessage sendMessage = subtopicMessageCollector(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Become a tutor message was created", LogEnum.SERVICE);
+        return sendMessage;
+    }
+
     public SendMessage createStopMessage(Long chatId){
         String text = """
-                        ❗ Ви відписалися від телеграм боту❗ 
+                        ❗ Ви відписалися від телеграм боту❗
                         Якщо ви бажаєте знову ним користуватися, будь ласка введіть або натисніть на команду /start
                       """;
         SendMessage message = messageFactory.createMessage(chatId, text);
@@ -95,21 +149,32 @@ public class BotDialogHandler {
         return message;
     }
 
-    public SendMessage createMessage(Long chatId, String text){
-        return messageFactory.createMessage(chatId, text);
+    public SendMessage createErrorMessage(Long chatId){
+        String text = """
+        ❗ <b>Такої команди не існує</b> ❗
+        Наразі доступні такі команди:
+                <b>start</b> - Запускає Ваше спілкування з ботом
+                <b>stop</b> - Закінчує Ваше спілкування з ботом
+                <b>menu</b> - Відкриває меню
+                <b>back</b> - Повертає до меню
+                <b>about_bot</b> - Розкаже як користуватись ботом
+                <b>about_school</b> - Розкаже про школу
+                <b>promotions</b> - Дізнаєтеся про актуальні акції
+        """;
+        SendMessage message = messageFactory.createMessage(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Error message was created", LogEnum.SERVICE);
+        return message;
     }
 
-
-    // Другие методы...
-//
-//    private Map<String, String> getSettingsOptions() {
-//        Map<String, String> options = new HashMap<>();
-//        options.put("bank", "Банки");
-//        options.put("currency", "Валюти");
-//        options.put("decimal", "Знаків після коми");
-//        options.put("notification", "Час сповіщення");
-//        return options;
-//    }
+    private Map<String, String> getCollaborationOptions() {
+        Map<String, String> options = new HashMap<>();
+        options.put("tutor", "Хочу бути викладачем");
+        options.put("offers", "Пропозиції");
+        options.put("referral", "Робота рефералом");
+        options.put("ad", "Реклама");
+        return options;
+    }
 
     private SendMessage mainMessageCollector (Long chatId, String text){
         SendMessage sendMessage = messageFactory.createMessage(chatId, text);

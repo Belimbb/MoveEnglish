@@ -48,7 +48,7 @@ public class ChatBot extends TelegramLongPollingBot {
     }
 
     public void botRun() {
-        TelegramBotsApi api = null;
+        TelegramBotsApi api;
         try {
             api = new TelegramBotsApi(DefaultBotSession.class);
             api.registerBot(this);
@@ -70,98 +70,85 @@ public class ChatBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
         Long chatId = getChatId(update);
-        boolean isCommandPerformed = false;
         // check or add user
-        if (!userService.existById(chatId)){
+        if (!userService.existById(chatId)) {
             userService.create(chatId, update);
         }
 
         // Messages processing
         if (update.hasMessage()) {
-
-            String msgCommand = update.getMessage().getText();
-            log.info("onUpdate: msgCommand: {}  User: {}", msgCommand, chatId);
-
-            // Start
-            if (msgCommand.equals("/start")) {
-                isCommandPerformed = true;
-                doCommandStart(chatId, update);
-            }
-            // Stop
-            if (checkCommand(msgCommand, "/stop", "Вийти")) {
-                isCommandPerformed = true;
-                doCommandStop(chatId);
-            }
-            // Menu
-            if (checkCommand(msgCommand, "/menu", "Меню") ||
-                    checkCommand(msgCommand, "/back", "Назад")){
-                isCommandPerformed = true;
-                doCommandMenu(chatId);
-            }
-
-            if (checkCommand(msgCommand, "/about_bot", "ботом?")){
-                isCommandPerformed = true;
-                doCommandAboutBot(chatId);
-            }
-
-            if (checkCommand(msgCommand, "/about_school", "школа?")){
-                isCommandPerformed = true;
-                doCommandAboutSchool(chatId);
-            }
-
-            if (checkCommand(msgCommand, "/promotions", "Акції")){
-                isCommandPerformed = true;
-                doCommandPromotions(chatId);
-            }
-
-
-            // if no command
-            if (!isCommandPerformed) {
-                sendErrorMessage(chatId);
-            }
+            messageProcessing(update, chatId);
         }
 
         // Callbacks processing
         if (update.hasCallbackQuery()) {
-            String[] btnCommand = update.getCallbackQuery().getData().split("_");
-            log.info("btnCommand: {} btnCommand[] {}  User: {}", update.getCallbackQuery().getData(),
-                    Arrays.toString(btnCommand), chatId);
-
-            switch (btnCommand[0].toUpperCase()) {
-                case "MENU" -> doCommandMenu(chatId);
-            }
-
+            callBackProcessing(update, chatId);
         }
     }
 
-    private void doCommandStart(Long chatId, Update update) {
-        sendMessage(dialogHandler.createWelcomeMessage(chatId, extractName(update)));
-        log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) ", LogEnum.CONTROLLER, chatId);
-    }
-    private void doCommandStop(Long chatId) {
-        sendMessage(dialogHandler.createStopMessage(chatId));
-        log.info("{}: " + CLASS_NAME + ". Executed stop message (chatId: {})", LogEnum.CONTROLLER, chatId);
-        userService.delete(chatId);
+    private void messageProcessing(Update update, Long chatId){
+        String msgCommand = update.getMessage().getText();
+        log.info("onUpdate: msgCommand: {}  User: {}", msgCommand, chatId);
+
+        // Start
+        if (checkCommand(msgCommand, "/start", "початок")) {
+            sendMessage(dialogHandler.createWelcomeMessage(chatId, extractName(update)));
+            log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) ", LogEnum.CONTROLLER, chatId);
+        }
+        // Stop
+        else if (checkCommand(msgCommand, "/stop", "Вийти")) {
+            sendMessage(dialogHandler.createStopMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed stop message (chatId: {})", LogEnum.CONTROLLER, chatId);
+            userService.delete(chatId);
+        }
+        // Menu
+        else if (checkCommand(msgCommand, "/menu", "Меню") ||
+                checkCommand(msgCommand, "/back", "Назад")) {
+            sendMessage(dialogHandler.createMenuMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed menu message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/about_bot", "ботом?")) {
+            sendMessage(dialogHandler.createAboutBotMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed about bot message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/about_school", "школа?")) {
+            sendMessage(dialogHandler.createAboutSchoolMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed about school message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/promotions", "Акції")) {
+            sendMessage(dialogHandler.createPromotionsMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed promotions message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/collaboration", "Співпраця")) {
+            sendMessage(dialogHandler.createCollaborationMessage(chatId));
+            sendMessage(dialogHandler.createCollaborationButtonsMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed collaboration messages (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/become_tutor", "репетитором")) {
+            sendMessage(dialogHandler.createTutorMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed become a tutor message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else  {
+            sendMessage(dialogHandler.createErrorMessage(chatId));
+        }
     }
 
-    private void doCommandMenu(Long chatId){
-        sendMessage(dialogHandler.createMenuMessage(chatId));
-        log.info("{}: " + CLASS_NAME + ". Executed menu message (chatId: {})", LogEnum.CONTROLLER, chatId);
-    }
+    private void callBackProcessing(Update update, Long chatId){
+        String[] btnCommand = update.getCallbackQuery().getData().split("_");
+        Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
 
-    private void doCommandAboutBot(Long chatId){
-        sendMessage(dialogHandler.createAboutBotMessage(chatId));
-        log.info("{}: " + CLASS_NAME + ". Executed about bot message (chatId: {})", LogEnum.CONTROLLER, chatId);
-    }
+        log.info("btnCommand: {} btnCommand[] {}  User: {}", update.getCallbackQuery().getData(),
+                Arrays.toString(btnCommand), chatId);
 
-    private void doCommandAboutSchool(Long chatId){
-        sendMessage(dialogHandler.createAboutSchoolMessage(chatId));
-        log.info("{}: " + CLASS_NAME + ". Executed about school message (chatId: {})", LogEnum.CONTROLLER, chatId);
-    }
-
-    private void doCommandPromotions(Long chatId){
-        sendMessage(dialogHandler.createPromotionsMessage(chatId));
-        log.info("{}: " + CLASS_NAME + ". Executed promotions message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        switch (btnCommand[1]) {
+            case "tutor" -> sendMessage(dialogHandler.onTutorMessage(chatId, messageId));
+        }
     }
 
     private void sendMessage(SendMessage message) {
@@ -190,26 +177,11 @@ public class ChatBot extends TelegramLongPollingBot {
         }
     }
 
-    private void sendErrorMessage(Long chatId) {
-        SendMessage ms = dialogHandler.createMessage(chatId, """
-        ❗ <b>Такої команди не існує</b> ❗
-        Наразі доступні такі команди:
-                <b>start</b> - Запускає Ваше спілкування з ботом
-                <b>stop</b> - Закінчує Ваше спілкування з ботом
-                <b>menu</b> - Відкриває меню
-                <b>back</b> - Повертає до меню
-                <b>about_bot</b> - Розкаже як користуватись ботом
-                <b>about_school</b> - Розкаже про школу
-                <b>promotions</b> - Дізнаєтеся про актуальні акції
-        """);
-        sendMessage(ms);
-    }
-
-    private String extractName(Update update){
+    private String extractName(Update update) {
         return update.getMessage().getFrom().getFirstName();
     }
 
-    private Boolean checkCommand (String msgCommand, String techName, String audienceName){
+    private Boolean checkCommand(String msgCommand, String techName, String audienceName) {
         return msgCommand.equals(techName) || msgCommand.endsWith(new String(audienceName.getBytes(), StandardCharsets.UTF_8));
     }
 }

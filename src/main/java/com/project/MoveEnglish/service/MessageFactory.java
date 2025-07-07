@@ -1,6 +1,7 @@
 package com.project.MoveEnglish.service;
 
 import com.project.MoveEnglish.exception.LogEnum;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
@@ -11,7 +12,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 @Slf4j
 @Service
 public class MessageFactory {
-    private static Long chatId;
     private static final String CLASS_NAME = "MessageFactory";
 
     public SendMessage createMessage(Long chatId, String text) {
@@ -24,7 +24,7 @@ public class MessageFactory {
         return message;
     }
 
-    public SendMessage createMessageWithEmoji(String emoji, String text) {
+    public SendMessage createMessageWithEmoji(Long chatId, String emoji, String text) {
         String fullText = emoji.isEmpty() ? text : emoji + " " + text;
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
@@ -45,7 +45,7 @@ public class MessageFactory {
 
      */
 
-    public EditMessageText editMessage(Integer messageId, String text) {
+    public EditMessageText editMessage(Long chatId, Integer messageId, String text) {
         EditMessageText editMessage = new EditMessageText();
         editMessage.setChatId(chatId.toString());
         editMessage.setMessageId(messageId);
