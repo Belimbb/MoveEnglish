@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService{
             firstName = update.getCallbackQuery().getFrom().getFirstName();
             userName = update.getCallbackQuery().getFrom().getLastName();
         }
-        UserEntity user = new UserEntity(chatId, firstName, userName);
+        UserEntity user = new UserEntity(chatId, firstName, userName, UserState.NONE);
         //AppRegistry.addUserCompletely(user);
 
         log.info("{}: "+CLASS_NAME+". " + OBJECT_NAME + " (Username: {}) was created", LogEnum.SERVICE, userName);
@@ -67,6 +67,7 @@ public class UserServiceImpl implements UserService{
         UserEntity user = findById(id);
         user.setName(dto.name());
         user.setUsername(dto.username());
+        user.setState(dto.state());
 
         log.info("{}: "+ CLASS_NAME +". " + OBJECT_NAME + " (id: {}) was updated", LogEnum.SERVICE, id);
         return saveUser(user);
@@ -81,6 +82,13 @@ public class UserServiceImpl implements UserService{
     @Override
     public Boolean existById(Long id){
         return userRepository.existsById(id);
+    }
+
+    public UserDto updateState (Long id, UserState state){
+        UserEntity user = findById(id);
+        user.setState(state);
+
+        return saveUser(user);
     }
 
     private UserEntity findById(Long id) {

@@ -89,6 +89,28 @@ public class BotDialogHandler {
         return sendMessage;
     }
 
+    public SendMessage createLessonMessage(Long chatId) {
+        String text = """
+                Для запису на урок напишіть своє ім'я та прізвище або номер телефону (якщо закритий аккаунт).
+                Після підтвердження, адміністратор зв'яжеться з вами і уточнить інфомацію👍
+                """;
+        SendMessage sendMessage = subtopicMessageCollector(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Lesson message was created", LogEnum.SERVICE);
+        return sendMessage;
+    }
+
+    public SendMessage createThanksMessage(Long chatId) {
+        String text = """
+                💡Дякую за ваше повідомлення.
+                Наш адміністратор зв'яжеться з вами у найближчий час.🛎️
+                """;
+        SendMessage sendMessage = subtopicMessageCollector(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Thanks message was created", LogEnum.SERVICE);
+        return sendMessage;
+    }
+
     public SendMessage createCollaborationMessage(Long chatId) {
         String text = "Вітаю вас у розділі співпраця📈";
         SendMessage sendMessage = subtopicMessageCollector(chatId, text);
@@ -165,6 +187,13 @@ public class BotDialogHandler {
 
         log.info("{}: " + CLASS_NAME + ". Error message was created", LogEnum.SERVICE);
         return message;
+    }
+
+    public SendMessage createMessage(Long chatId, String text) {
+        SendMessage sendMessage = messageFactory.createMessage(chatId, text);
+
+        log.info("{}: " + CLASS_NAME + ". Custom message was created", LogEnum.SERVICE);
+        return sendMessage;
     }
 
     private Map<String, String> getCollaborationOptions() {

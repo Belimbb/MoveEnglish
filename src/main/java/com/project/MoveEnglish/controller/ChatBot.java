@@ -1,7 +1,10 @@
 package com.project.MoveEnglish.controller;
 
+import com.project.MoveEnglish.entity.user.UserDto;
 import com.project.MoveEnglish.entity.user.UserService;
+import com.project.MoveEnglish.entity.user.UserState;
 import com.project.MoveEnglish.exception.LogEnum;
+import com.project.MoveEnglish.exception.generalExceptions.CustomNotFoundException;
 import com.project.MoveEnglish.service.BotDialogHandler;
 
 import jakarta.annotation.PostConstruct;
@@ -36,6 +39,8 @@ public class ChatBot extends TelegramLongPollingBot {
     private String botName;
     @Value("${bot.token}")
     private String botToken;
+    @Value("${bot.adminId}")
+    private Long adminId;
 
     @Override
     public String getBotUsername() { return this.botName; }
@@ -71,27 +76,40 @@ public class ChatBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         Long chatId = getChatId(update);
         // check or add user
-        if (!userService.existById(chatId)) {
+        try {
+            userService.getById(chatId);
+        } catch (CustomNotFoundException e){
             userService.create(chatId, update);
         }
+        UserDto userDto = userService.getById(chatId);
 
         // Messages processing
         if (update.hasMessage()) {
-            messageProcessing(update, chatId);
+            messageProcessing(update, userDto);
         }
 
         // Callbacks processing
         if (update.hasCallbackQuery()) {
-            callBackProcessing(update, chatId);
+            callBackProcessing(update, userDto);
         }
     }
 
-    private void messageProcessing(Update update, Long chatId){
+    private void messageProcessing(Update update, UserDto userDto){
         String msgCommand = update.getMessage().getText();
+        Long chatId = userDto.id();
         log.info("onUpdate: msgCommand: {}  User: {}", msgCommand, chatId);
 
+        UserState state = userDto.state();
+
+        if (state!=null && !state.equals(UserState.NONE)){
+            switch (state){
+                case UserState.SIGN_FOR_LESSON -> handleInteractMes(chatId, msgCommand, Command.LESSON);
+                case UserState.SIGN_FOR_TUTOR -> handleInteractMes(chatId, msgCommand, Command.TUTOR);
+            }
+            updateUserState(userDto, UserState.NONE);
+        }
         // Start
-        if (checkCommand(msgCommand, "/start", "початок")) {
+        else if (checkCommand(msgCommand, "/start", "початок")) {
             sendMessage(dialogHandler.createWelcomeMessage(chatId, extractName(update)));
             log.info("{}: " + CLASS_NAME + ". Executed welcome message (chatId: {}) ", LogEnum.CONTROLLER, chatId);
         }
@@ -106,6 +124,11 @@ public class ChatBot extends TelegramLongPollingBot {
                 checkCommand(msgCommand, "/back", "Назад")) {
             sendMessage(dialogHandler.createMenuMessage(chatId));
             log.info("{}: " + CLASS_NAME + ". Executed menu message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
+        else if (checkCommand(msgCommand, "/lesson", "урок")) {
+            sendMessage(dialogHandler.createLessonMessage(chatId));
+            updateUserState(userDto, UserState.SIGN_FOR_LESSON);
         }
 
         else if (checkCommand(msgCommand, "/about_bot", "ботом?")) {
@@ -131,6 +154,7 @@ public class ChatBot extends TelegramLongPollingBot {
 
         else if (checkCommand(msgCommand, "/become_tutor", "репетитором")) {
             sendMessage(dialogHandler.createTutorMessage(chatId));
+            updateUserState(userDto, UserState.SIGN_FOR_TUTOR);
             log.info("{}: " + CLASS_NAME + ". Executed become a tutor message (chatId: {})", LogEnum.CONTROLLER, chatId);
         }
 
@@ -139,16 +163,32 @@ public class ChatBot extends TelegramLongPollingBot {
         }
     }
 
-    private void callBackProcessing(Update update, Long chatId){
+    private void callBackProcessing(Update update, UserDto userDto){
         String[] btnCommand = update.getCallbackQuery().getData().split("_");
         Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
+        Long chatId = userDto.id();
 
         log.info("btnCommand: {} btnCommand[] {}  User: {}", update.getCallbackQuery().getData(),
                 Arrays.toString(btnCommand), chatId);
 
         switch (btnCommand[1]) {
-            case "tutor" -> sendMessage(dialogHandler.onTutorMessage(chatId, messageId));
+            case "tutor":
+                sendMessage(dialogHandler.onTutorMessage(chatId, messageId));
+                updateUserState(userDto, UserState.SIGN_FOR_TUTOR);
         }
+    }
+
+    private void handleInteractMes(Long chatId, String userInput, Command command) {
+        String textToAdmin;
+
+        switch (command){
+            case Command.LESSON -> textToAdmin = String.format("ChatId: %s. Запис на урок: \n%s", chatId, userInput);
+            case Command.TUTOR -> textToAdmin = String.format("ChatId: %s. Хоче стати викладачем: \n%s", chatId, userInput);
+            default -> throw new IllegalArgumentException("Illegal command");
+        }
+
+        sendMessage(dialogHandler.createMessage(adminId, textToAdmin));
+        sendMessage(dialogHandler.createThanksMessage(chatId));
     }
 
     private void sendMessage(SendMessage message) {
@@ -183,5 +223,10 @@ public class ChatBot extends TelegramLongPollingBot {
 
     private Boolean checkCommand(String msgCommand, String techName, String audienceName) {
         return msgCommand.equals(techName) || msgCommand.endsWith(new String(audienceName.getBytes(), StandardCharsets.UTF_8));
+    }
+
+    private void updateUserState (UserDto userDto, UserState state){
+        UserDto updated = new UserDto(userDto.id(), userDto.name(), userDto.username(), state);
+        userService.update(updated);
     }
 }
