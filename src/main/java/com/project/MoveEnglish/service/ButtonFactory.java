@@ -18,7 +18,6 @@ import java.util.Map;
 public class ButtonFactory {
     private static final String CLASS_NAME = "ButtonFactory";
 
-    // Метод для создания постоянной клавиатуры пользователя
     public ReplyKeyboardMarkup getMainReplyKeyboardMarkup() {
         KeyboardRow row = new KeyboardRow();
         row.add("Меню");
@@ -67,11 +66,10 @@ public class ButtonFactory {
         return replyKeyboardMarkup;
     }
 
-    // Метод для создания инлайн-клавиатуры на основе предоставленных параметров
-    public InlineKeyboardMarkup getInlineKeyboardMarkup(Map<String, String> options, String prefix, List<String> userSelections) {
+    public InlineKeyboardMarkup getInlineKeyboardMarkup(Map<String, String> options, String prefix) {
         List<InlineKeyboardButton> buttons = new ArrayList<>();
         for (Map.Entry<String, String> option : options.entrySet()) {
-            String buttonText = userSelections.contains(option.getKey()) ? "✅ " + option.getValue() : option.getValue();
+            String buttonText = option.getValue();
             buttons.add(createButton(buttonText, prefix + "_" + option.getKey()));
         }
 
@@ -79,7 +77,6 @@ public class ButtonFactory {
         return buildInlineKeyboard(buttons);
     }
 
-    // Вспомогательный метод для создания кнопки
     private InlineKeyboardButton createButton(String text, String callbackData) {
         InlineKeyboardButton button = new InlineKeyboardButton();
         button.setText(text);
