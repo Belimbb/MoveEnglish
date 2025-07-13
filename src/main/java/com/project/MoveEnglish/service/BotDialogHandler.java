@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -100,6 +102,29 @@ public class BotDialogHandler {
         return sendMessage;
     }
 
+    public SendMediaGroup createAboutTutorsMessage(Long chatId){
+        String text = """
+                Наші репетитори😇
+                
+                🔹 Олексій — випускник нашої школи, рівень B2+ (IELTS 6.5)
+                Має 1 рік досвіду викладання, працює з підлітками та дорослими.
+                Його учні хвалять за чітке пояснення граматики та словниковий запас.
+                На заняттях — спокійна атмосфера та стабільний прогрес 📈
+                
+                🔹 Євген — також випускник нашої школи, рівень C1 (IELTS 7.0), 1 рік досвіду
+                Проводить цікаві, живі та інтерактивні уроки, де акцент на вимові та спікінгу.
+                Якщо хочеш заговорити красиво та впевнено — це до нього!
+                
+                📍 Олексій та Євген зараз навчаються за кордоном в європейських університетах, тож не з чуток знають, як виглядає “англійська у дії”.
+                """;
+        List<String> photos = new ArrayList<>();
+        photos.add("Oleksii_photo.jpg");
+        photos.add("Eugene_photo.jpg");
+        SendMediaGroup message = messageFactory.createPhotoAlbum(chatId, photos, text);
+        log.info("{}: " + CLASS_NAME + ". About tutors message was created", LogEnum.SERVICE);
+        return message;
+    }
+
     public SendMessage createThanksMessage(Long chatId) {
         String text = """
                 💡Дякую за ваше повідомлення.
@@ -122,7 +147,7 @@ public class BotDialogHandler {
     public SendMessage createCollaborationButtonsMessage(Long chatId) {
         String text = "Оберіть варіант у якому ви зацікавлені";
         SendMessage sendMessage = messageFactory.createMessage(chatId, text);
-        sendMessage.setReplyMarkup(buttonFactory.getInlineKeyboardMarkup(getCollaborationOptions(), "collaboration", new ArrayList<>()));
+        sendMessage.setReplyMarkup(buttonFactory.getInlineKeyboardMarkup(getCollaborationOptions(), "collaboration"));
 
         log.info("{}: " + CLASS_NAME + ". Collaboration button message was created", LogEnum.SERVICE);
         return sendMessage;
@@ -138,6 +163,40 @@ public class BotDialogHandler {
                 3. По якому графіку ви готові працювати?
                 4. Чи маєте ви досвід у викладанні, якщо так, який?
                  Якщо ви нам підходите, ми зв'яжемось з вами у найближчий час!
+                """;
+        return messageFactory.editMessage(chatId, messageId, text);
+    }
+
+    public EditMessageText onOffersMessage(Long chatId, Integer messageId) {
+        String text = """
+                Вітаю👋
+                
+                Якщо у вас є пропоиція, вкажіть її нижче та напишіть ваші контактні дані.🙌
+                
+                Ми зв'яжемось з вами у найближчий час!
+                """;
+        return messageFactory.editMessage(chatId, messageId, text);
+    }
+
+    public EditMessageText onReferralMessage(Long chatId, Integer messageId) {
+        String text = """
+                Вітаю!👋
+                Робота рефералом 📩
+                Для роботи рефералом у нашій школі, вам потріно мати:
+                
+                1. Доступ до інтернет мереж (Tik Tok, Instagram, Youtube і тд.)
+                2. Телефон, комп'ютер і тд. для розсилки вашого реферального коду.
+                
+                📈Для початку співпраці напишіть ваші контактні дані та чи маєте все необхідне.
+                """;
+        return messageFactory.editMessage(chatId, messageId, text);
+    }
+
+    public EditMessageText onAdMessage(Long chatId, Integer messageId) {
+        String text = """
+                Реклама📊
+                
+                Якщо ви готові надати нам рекламні пропозиції або співпрацювати з нами, напишіть ваші контактні дані та саму пропозицію 📈
                 """;
         return messageFactory.editMessage(chatId, messageId, text);
     }

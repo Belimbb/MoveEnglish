@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -104,7 +104,10 @@ public class ChatBot extends TelegramLongPollingBot {
         if (state!=null && !state.equals(UserState.NONE)){
             switch (state){
                 case UserState.SIGN_FOR_LESSON -> handleInteractMes(chatId, msgCommand, Command.LESSON);
+                case UserState.SIGN_FOR_OFFER -> handleInteractMes(chatId, msgCommand, Command.OFFER);
                 case UserState.SIGN_FOR_TUTOR -> handleInteractMes(chatId, msgCommand, Command.TUTOR);
+                case UserState.SIGN_FOR_REFERRAL -> handleInteractMes(chatId, msgCommand, Command.REFERRAL);
+                case UserState.SIGN_FOR_AD -> handleInteractMes(chatId, msgCommand, Command.AD);
             }
             updateUserState(userDto, UserState.NONE);
         }
@@ -141,6 +144,11 @@ public class ChatBot extends TelegramLongPollingBot {
             log.info("{}: " + CLASS_NAME + ". Executed about school message (chatId: {})", LogEnum.CONTROLLER, chatId);
         }
 
+        else if (checkCommand(msgCommand, "/about_tutors", "репетиторів")) {
+            sendPhot(dialogHandler.createAboutTutorsMessage(chatId));
+            log.info("{}: " + CLASS_NAME + ". Executed about tutors message (chatId: {})", LogEnum.CONTROLLER, chatId);
+        }
+
         else if (checkCommand(msgCommand, "/promotions", "Акції")) {
             sendMessage(dialogHandler.createPromotionsMessage(chatId));
             log.info("{}: " + CLASS_NAME + ". Executed promotions message (chatId: {})", LogEnum.CONTROLLER, chatId);
@@ -172,9 +180,22 @@ public class ChatBot extends TelegramLongPollingBot {
                 Arrays.toString(btnCommand), chatId);
 
         switch (btnCommand[1]) {
+            case "offers":
+                sendMessage(dialogHandler.onOffersMessage(chatId, messageId));
+                updateUserState(userDto, UserState.SIGN_FOR_OFFER);
+                break;
+            case "referral":
+                sendMessage(dialogHandler.onReferralMessage(chatId, messageId));
+                updateUserState(userDto, UserState.SIGN_FOR_REFERRAL);
+                break;
+            case "ad":
+                sendMessage(dialogHandler.onAdMessage(chatId, messageId));
+                updateUserState(userDto, UserState.SIGN_FOR_AD);
+                break;
             case "tutor":
                 sendMessage(dialogHandler.onTutorMessage(chatId, messageId));
                 updateUserState(userDto, UserState.SIGN_FOR_TUTOR);
+                break;
         }
     }
 
@@ -183,7 +204,10 @@ public class ChatBot extends TelegramLongPollingBot {
 
         switch (command){
             case Command.LESSON -> textToAdmin = String.format("ChatId: %s. Запис на урок: \n%s", chatId, userInput);
+            case Command.OFFER -> textToAdmin = String.format("ChatId: %s. Пропонує таку співпрацю: \n%s", chatId, userInput);
             case Command.TUTOR -> textToAdmin = String.format("ChatId: %s. Хоче стати викладачем: \n%s", chatId, userInput);
+            case Command.REFERRAL -> textToAdmin = String.format("ChatId: %s. Хоче стати рефералом: \n%s", chatId, userInput);
+            case Command.AD -> textToAdmin = String.format("ChatId: %s. Пропонує таку рекламу: \n%s", chatId, userInput);
             default -> throw new IllegalArgumentException("Illegal command");
         }
 
@@ -191,31 +215,24 @@ public class ChatBot extends TelegramLongPollingBot {
         sendMessage(dialogHandler.createThanksMessage(chatId));
     }
 
-    private void sendMessage(SendMessage message) {
+    private void sendMessage(BotApiMethod<?> message) {
         if (message != null) {
             try {
                 execute(message);
             } catch (TelegramApiException e) {
-                if (e.getMessage().contains("[403] Forbidden")) {
-                    log.error("Can't sent sendMessage() Error message: {}", e.getMessage());
-                    log.info("User {} left chat, removing...", message.getChatId());
-                    userService.delete(Long.parseLong(message.getChatId()));
-                } else {
-                    log.error("Can't sendMessage() sendMessage", e);
-                }
+                log.error("Can't send message: {}", message.getClass().getSimpleName(), e);
             }
         }
     }
 
-    private void sendMessage(EditMessageText message) {
-        if (message != null) {
-            try {
-                execute(message);
-            } catch (TelegramApiException e) {
-                log.error("Can't sendMessage() EditMessageText", e);
-            }
+    private void sendPhot(SendMediaGroup group){
+        try {
+            execute(group);
+        } catch (TelegramApiException e) {
+            log.error("Can't send message: {}", group.getClass().getSimpleName(), e);
         }
     }
+
 
     private String extractName(Update update) {
         return update.getMessage().getFrom().getFirstName();

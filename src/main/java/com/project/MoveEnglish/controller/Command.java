@@ -2,5 +2,8 @@ package com.project.MoveEnglish.controller;
 
 public enum Command {
     LESSON,
-    TUTOR
+    TUTOR,
+    OFFER,
+    REFERRAL,
+    AD
 }
