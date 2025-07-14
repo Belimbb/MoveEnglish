@@ -4,7 +4,7 @@ import com.project.MoveEnglish.entity.user.UserDto;
 import com.project.MoveEnglish.entity.user.UserService;
 import com.project.MoveEnglish.entity.user.UserState;
 import com.project.MoveEnglish.exception.LogEnum;
-import com.project.MoveEnglish.exception.generalExceptions.CustomNotFoundException;
+import com.project.MoveEnglish.exception.generalExceptions.SomethingWentWrongException;
 import com.project.MoveEnglish.service.BotDialogHandler;
 
 import jakarta.annotation.PostConstruct;
@@ -76,11 +76,10 @@ public class ChatBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         Long chatId = getChatId(update);
         // check or add user
-        try {
-            userService.getById(chatId);
-        } catch (CustomNotFoundException e){
+        if (!userService.existById(chatId)){
             userService.create(chatId, update);
         }
+
         UserDto userDto = userService.getById(chatId);
 
         // Messages processing
@@ -132,6 +131,7 @@ public class ChatBot extends TelegramLongPollingBot {
         else if (checkCommand(msgCommand, "/lesson", "урок")) {
             sendMessage(dialogHandler.createLessonMessage(chatId));
             updateUserState(userDto, UserState.SIGN_FOR_LESSON);
+            log.info("{}: " + CLASS_NAME + ". Executed sign for lesson message (chatId: {})", LogEnum.CONTROLLER, chatId);
         }
 
         else if (checkCommand(msgCommand, "/about_bot", "ботом?")) {
@@ -168,6 +168,7 @@ public class ChatBot extends TelegramLongPollingBot {
 
         else  {
             sendMessage(dialogHandler.createErrorMessage(chatId));
+            throw new SomethingWentWrongException();
         }
     }
 
@@ -183,18 +184,22 @@ public class ChatBot extends TelegramLongPollingBot {
             case "offers":
                 sendMessage(dialogHandler.onOffersMessage(chatId, messageId));
                 updateUserState(userDto, UserState.SIGN_FOR_OFFER);
+                log.info("{}: " + CLASS_NAME + ". Executed offer message (chatId: {})", LogEnum.CONTROLLER, chatId);
                 break;
             case "referral":
                 sendMessage(dialogHandler.onReferralMessage(chatId, messageId));
                 updateUserState(userDto, UserState.SIGN_FOR_REFERRAL);
+                log.info("{}: " + CLASS_NAME + ". Executed referral message (chatId: {})", LogEnum.CONTROLLER, chatId);
                 break;
             case "ad":
                 sendMessage(dialogHandler.onAdMessage(chatId, messageId));
                 updateUserState(userDto, UserState.SIGN_FOR_AD);
+                log.info("{}: " + CLASS_NAME + ". Executed ad message (chatId: {})", LogEnum.CONTROLLER, chatId);
                 break;
             case "tutor":
                 sendMessage(dialogHandler.onTutorMessage(chatId, messageId));
                 updateUserState(userDto, UserState.SIGN_FOR_TUTOR);
+                log.info("{}: " + CLASS_NAME + ". Executed tutor message (chatId: {})", LogEnum.CONTROLLER, chatId);
                 break;
         }
     }
