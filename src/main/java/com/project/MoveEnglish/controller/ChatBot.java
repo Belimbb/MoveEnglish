@@ -53,12 +53,30 @@ public class ChatBot extends TelegramLongPollingBot {
     }
 
     public void botRun() {
-        TelegramBotsApi api;
+        // Validate essential bot configuration early for clearer errors
+        if (botName == null || botName.isBlank()) {
+            throw new IllegalStateException("BOT_NAME is missing or empty. Set BOT_NAME environment variable or application property 'bot.name'.");
+        }
+        if (botToken == null || botToken.isBlank()) {
+            throw new IllegalStateException("BOT_TOKEN is missing or empty. Set BOT_TOKEN environment variable or application property 'bot.token'.");
+        }
+
         try {
-            api = new TelegramBotsApi(DefaultBotSession.class);
+            TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             api.registerBot(this);
+            log.info("{}: ChatBot registered successfully with Telegram as '{}'.", LogEnum.CONTROLLER, botName);
+        } catch (org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException e) {
+            String message = e.getMessage() != null ? e.getMessage() : "";
+            // Common case: Unauthorized during webhook clear indicates wrong token
+            if (message.contains("Unauthorized") || message.contains("401")) {
+                throw new IllegalStateException(
+                        "Telegram authorization failed (401 Unauthorized). " +
+                        "Most likely BOT_TOKEN is invalid or doesn't belong to '" + botName + "'. " +
+                        "Please verify BOT_TOKEN (and optionally BOT_NAME) in your app.env/.env and restart.", e);
+            }
+            throw new IllegalStateException("Failed to register Telegram bot. " + message, e);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to register Telegram bot due to Telegram API error.", e);
         }
     }
 
