@@ -17,5 +17,6 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/MoveEnglish-0.0.1-SNAPSHOT.jar MoveEnglish.jar
 
 EXPOSE 8080
+ENV PORT=8080
 
 CMD ["java","-jar","MoveEnglish.jar"]
